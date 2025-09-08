@@ -1,10 +1,41 @@
 import React, { useEffect, useState } from "react";
 import "./style.css";
 import { Button } from "@radix-ui/themes";
+import { mintNFT } from "./mint";
+import { useCurrentWallet } from "@mysten/dapp-kit";
+
+//  I NEED TO PASS WALLET TO MINT NFT
+
+//import { SuiClient } from '@mysten/sui.js/client';
+
+// const client = new SuiClient({ url: 'https://fullnode.testnet.sui.io:443' });
+// console.log('Connected to:', client.options.url);
 
 const STORAGE_KEY = "saved_image_urls_v1";
 
 const ImageLoader: React.FC = () => {
+  // use current wallet
+
+  const { currentWallet } = useCurrentWallet();
+
+  const handleMint = async (url: any, nameNFT: any) => {
+    if (!currentWallet) {
+      setMessage({ type: "error", text: "Please connect your wallet first." });
+      return;
+    }
+    try {
+      setLoading(true);
+      const name = new TextEncoder().encode(nameNFT);
+      const urlBytes = new TextEncoder().encode(url);
+      const result = await mintNFT(name, urlBytes, currentWallet);
+      setMessage({ type: "info", text: "NFT minted! Tx: " + result.digest });
+    } catch (e) {
+      setMessage({ type: "error", text: "Mint failed: " });
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const [imageUrl, setImageUrl] = useState("");
   const [savedUrls, setSavedUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -13,7 +44,6 @@ const ImageLoader: React.FC = () => {
     text: string;
   } | null>(null);
 
-  // load saved URLs from localStorage once
   useEffect(() => {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
@@ -23,7 +53,6 @@ const ImageLoader: React.FC = () => {
     }
   }, []);
 
-  // persist saved URLs
   useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(savedUrls));
@@ -37,7 +66,6 @@ const ImageLoader: React.FC = () => {
     if (message) setMessage(null);
   };
 
-  // quick check whether an image loads from the URL
   const validateImage = (url: string) =>
     new Promise<boolean>((resolve) => {
       const img = new Image();
@@ -80,7 +108,6 @@ const ImageLoader: React.FC = () => {
 
     setSavedUrls((prev) => [url, ...prev]);
     setImageUrl("");
-    //setMessage({ type: "info"});
   };
 
   const handleDelete = (url: string) => {
@@ -122,7 +149,13 @@ const ImageLoader: React.FC = () => {
           {loading ? "Saving..." : "Save"}
         </Button>
 
-        <Button className="flex gap-2 ml-2">Mint your Image as NFT</Button>
+        <Button
+          className="flex gap-2 ml-2"
+          onClick={() => handleMint(imageUrl, nameNFT)}
+          disabled={loading || !currentWallet}
+        >
+          Mint your Image as NFT
+        </Button>
       </div>
 
       {message && (

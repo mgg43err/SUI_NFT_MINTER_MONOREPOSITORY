@@ -38,3 +38,5 @@ public fun name(nft: &NFT): &string::String {
 public fun url(nft: &NFT): &Url {
     &nft.url
 }
+
+

@@ -34,12 +34,12 @@ function App() {
             position="sticky"
             px="4"
             py="2"
-            direction='row'
-            gap='40px'
+            direction="row"
+            gap="40px"
             justify="between"
           >
-          <ImageLoader/>
-          <WalletStatus />
+            <ImageLoader />
+            <WalletStatus />
           </Flex>
         </Container>
       </Container>
