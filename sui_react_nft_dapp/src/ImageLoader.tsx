@@ -3,40 +3,54 @@ import "./style.css";
 import { Button } from "@radix-ui/themes";
 import { mintNFT } from "./mint";
 import { useCurrentWallet } from "@mysten/dapp-kit";
+import { SuiClient } from "@mysten/sui/client";
 
-//  I NEED TO PASS WALLET TO MINT NFT
-
-//import { SuiClient } from '@mysten/sui.js/client';
-
-// const client = new SuiClient({ url: 'https://fullnode.testnet.sui.io:443' });
-// console.log('Connected to:', client.options.url);
+const suiClient = new SuiClient({ url: "https://fullnode.testnet.sui.io" });
 
 const STORAGE_KEY = "saved_image_urls_v1";
 
 const ImageLoader: React.FC = () => {
-  // use current wallet
-
   const { currentWallet } = useCurrentWallet();
+
+  console.log("currentWallet", currentWallet?.accounts[0].address);
 
   const handleMint = async (url: any, nameNFT: any) => {
     if (!currentWallet) {
       setMessage({ type: "error", text: "Please connect your wallet first." });
       return;
     }
+    if (!nameNFT || nameNFT.trim() === "") {
+      setMessage({ type: "error", text: "Please enter a name for your NFT." });
+      return;
+    }
+    if (!url || url.trim() === "") {
+      setMessage({ type: "error", text: "Please enter a name for your NFT." });
+      return;
+    }
     try {
       setLoading(true);
       const name = new TextEncoder().encode(nameNFT);
       const urlBytes = new TextEncoder().encode(url);
-      const result = await mintNFT(name, urlBytes, currentWallet);
+      console.log(name, urlBytes, mintNFT.toString(), currentWallet);
+      const result = await mintNFT(
+        name,
+        urlBytes,
+        currentWallet?.accounts[0],
+        suiClient,
+      );
       setMessage({ type: "info", text: "NFT minted! Tx: " + result.digest });
     } catch (e) {
-      setMessage({ type: "error", text: "Mint failed: " });
+      setMessage({
+        type: "error",
+        text: "Mint failed: " + (e as Error).message,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const [imageUrl, setImageUrl] = useState("");
+  const [nameNFT, setNameNFT] = useState("");
   const [savedUrls, setSavedUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState<{
@@ -63,6 +77,11 @@ const ImageLoader: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setImageUrl(e.target.value);
+    if (message) setMessage(null);
+  };
+
+  const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNameNFT(e.target.value);
     if (message) setMessage(null);
   };
 
@@ -123,6 +142,18 @@ const ImageLoader: React.FC = () => {
 
   return (
     <div className="img_loader">
+      <label htmlFor="nftname" className="block mb-2">
+        Enter NFT Name
+      </label>
+      <input
+        type="text"
+        id="nftname"
+        value={nameNFT}
+        onChange={handleNameChange}
+        placeholder="Enter NFT name..."
+        className="border rounded p-2 w-full mb-3"
+      />
+
       <label htmlFor="url" className="block mb-2">
         Upload Your NFT Image
       </label>
@@ -184,7 +215,6 @@ const ImageLoader: React.FC = () => {
                     alt="Saved preview"
                     className="w-32 h-32 object-cover rounded-md hover:opacity-80 transition"
                     onError={(e) => {
-                      // simple fallback if image fails to render
                       (e.currentTarget as HTMLImageElement).src =
                         "data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Crect width='100%25' height='100%25' fill='%23eee'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%23999' font-size='18'%3EImage not available%3C/text%3E%3C/svg%3E";
                     }}
