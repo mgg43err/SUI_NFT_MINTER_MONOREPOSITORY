@@ -1,35 +1,31 @@
 import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
-import { useCurrentWallet } from "@mysten/dapp-kit";
+import { UseSignAndExecuteTransactionResult } from "@mysten/dapp-kit";
+import { WalletAccount } from "@wallet-standard/base";
 
 export async function mintNFT(
-  name: any,
-  url: any,
-  wallet: any,
-  suiClient: SuiClient, // <-- Pass your SuiClient instance here!
+  name: string,
+  url: string,
+  nftPackageId: string,
+  signAndExecute: UseSignAndExecuteTransactionResult["mutateAsync"],
+  suiClient: SuiClient,
+  walletAccount: WalletAccount,
 ) {
   const tx = new Transaction();
 
-  // const nameBytes = new TextEncoder().encode(name); // Uint8Array
-  // const urlBytes = new TextEncoder().encode(url);
-
-  console.log("name", name, "urlBytes", url);
-
   tx.moveCall({
-    target:
-      "0xd5a2abd42ea59914d83375873e8447544295bd0e5832350522bad79f8446a891::first_smart_contract::mint",
+    target: `${nftPackageId}::first_smart_contract::mint`,
     arguments: [tx.pure.string(name), tx.pure.string(url)],
   });
 
-  tx.setSender(wallet.address);
-  // Build the transaction to bytes
-  const bytes = await tx.build({ client: suiClient });
+  tx.setSender(walletAccount.address);
 
-  // Use the correct wallet method
-  //const result = await wallet.signAndExecuteTransaction({
-  //  transaction: bytes,
-  //  // You can add options here if needed, e.g. { showEffects: true }
-  //});
+  const result = await signAndExecute({
+    transaction: tx,
+    options: {
+      showEffects: true,
+    },
+  });
 
-  return bytes;
+  return result;
 }

@@ -1,9 +1,10 @@
-import { ConnectButton } from "@mysten/dapp-kit";
+import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { Box, Container, Flex, Heading } from "@radix-ui/themes";
-import { WalletStatus } from "./WalletStatus";
-import ImageLoader from "./ImageLoader";
+import { MintNftComponent } from "./MintNftComponent";
 
 function App() {
+  const currentAccount = useCurrentAccount();
+
   return (
     <>
       <Flex
@@ -30,17 +31,11 @@ function App() {
           px="4"
           style={{ background: "var(--gray-a2)", minHeight: 500 }}
         >
-          <Flex
-            position="sticky"
-            px="4"
-            py="2"
-            direction="row"
-            gap="40px"
-            justify="between"
-          >
-            <ImageLoader />
-            <WalletStatus />
-          </Flex>
+          {currentAccount ? (
+            <MintNftComponent />
+          ) : (
+            <Heading>Please connect your wallet</Heading>
+          )}
         </Container>
       </Container>
     </>
