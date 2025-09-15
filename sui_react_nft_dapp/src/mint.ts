@@ -13,10 +13,10 @@ export async function mintNFT(
   // const nameBytes = new TextEncoder().encode(name); // Uint8Array
   // const urlBytes = new TextEncoder().encode(url);
 
-  console.log("name", name, "urlBytes",  url);
+  console.log("name", name, "urlBytes", url);
 
   tx.moveCall({
-    target: `0xc8a6247cb83f54b648f9502a1ad5f63b6874cf60cc7b4b7082fbb2df0a287b5a::first_smart_contract::mint`,
+    target: `0xd5a2abd42ea59914d83375873e8447544295bd0e5832350522bad79f8446a891::first_smart_contract::mint`,
     arguments: [tx.pure(name), tx.pure(url)],
   });
 

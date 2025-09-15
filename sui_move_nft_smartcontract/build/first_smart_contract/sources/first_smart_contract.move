@@ -2,12 +2,11 @@ module 0x0::first_smart_contract;
 
 use std::string;
 use sui::event;
-use sui::url::{Self, Url};
 
 public struct NFT has key, store {
     id: UID,
     name: string::String,
-    url: Url,
+    url: string::String,
 }
 
 public struct MintNFTEvent has copy, drop {
@@ -16,11 +15,11 @@ public struct MintNFTEvent has copy, drop {
     name: string::String,
 }
 
-entry fun mint(name: vector<u8>, url: vector<u8>, ctx: &mut TxContext) {
+entry fun mint(name: string::String, url: string::String, ctx: &mut TxContext) {
     let nft = NFT {
         id: object::new(ctx),
-        name: string::utf8(name),
-        url: url::new_unsafe_from_bytes(url),
+        name: name,
+        url: url,
     };
     let sender = tx_context::sender(ctx);
     event::emit(MintNFTEvent {
@@ -35,8 +34,6 @@ public fun name(nft: &NFT): &string::String {
     &nft.name
 }
 
-public fun url(nft: &NFT): &Url {
+public fun url(nft: &NFT): &string::String {
     &nft.url
 }
-
-
