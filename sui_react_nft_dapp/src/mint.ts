@@ -16,8 +16,9 @@ export async function mintNFT(
   console.log("name", name, "urlBytes", url);
 
   tx.moveCall({
-    target: `0xd5a2abd42ea59914d83375873e8447544295bd0e5832350522bad79f8446a891::first_smart_contract::mint`,
-    arguments: [tx.pure(name), tx.pure(url)],
+    target:
+      "0xd5a2abd42ea59914d83375873e8447544295bd0e5832350522bad79f8446a891::first_smart_contract::mint",
+    arguments: [tx.pure.string(name), tx.pure.string(url)],
   });
 
   tx.setSender(wallet.address);
@@ -25,10 +26,10 @@ export async function mintNFT(
   const bytes = await tx.build({ client: suiClient });
 
   // Use the correct wallet method
-  const result = await wallet.signAndExecuteTransactionBlock({
-    transactionBlock: bytes,
-    // You can add options here if needed, e.g. { showEffects: true }
-  });
+  //const result = await wallet.signAndExecuteTransaction({
+  //  transaction: bytes,
+  //  // You can add options here if needed, e.g. { showEffects: true }
+  //});
 
-  return result;
+  return bytes;
 }

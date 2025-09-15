@@ -12,9 +12,8 @@ const STORAGE_KEY = "saved_image_urls_v1";
 const ImageLoader: React.FC = () => {
   const { currentWallet } = useCurrentWallet();
 
-  console.log("currentWallet", currentWallet?.accounts[0].address);
-
   const handleMint = async (url: any, nameNFT: any) => {
+    console.log("currentWallet", currentWallet?.accounts[0].address);
     if (!currentWallet) {
       setMessage({ type: "error", text: "Please connect your wallet first." });
       return;
@@ -29,12 +28,12 @@ const ImageLoader: React.FC = () => {
     }
     try {
       setLoading(true);
-      const name = new TextEncoder().encode(nameNFT);
-      const urlBytes = new TextEncoder().encode(url);
-      console.log(name, urlBytes, mintNFT.toString(), currentWallet);
+      //const name = new TextEncoder().encode(nameNFT);
+      //const urlBytes = new TextEncoder().encode(url);
+      //console.log(name, urlBytes, mintNFT.toString(), currentWallet);
       const result = await mintNFT(
-        name,
-        urlBytes,
+        nameNFT,
+        url,
         currentWallet?.accounts[0],
         suiClient,
       );
@@ -96,6 +95,7 @@ const ImageLoader: React.FC = () => {
   const handleSave = async () => {
     setMessage(null);
     const url = imageUrl.trim();
+    console.log(url);
     if (!url) {
       setMessage({ type: "error", text: "Please paste an image URL." });
       return;
