@@ -25,6 +25,7 @@ export function OwnedObjects() {
     return <Flex>Loading...</Flex>;
   }
 
+  console.log(data);
   return (
     <Flex direction="column" my="2">
       {data.data.length === 0 ? (

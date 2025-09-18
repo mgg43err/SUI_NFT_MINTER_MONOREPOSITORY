@@ -10,6 +10,7 @@ import {
 import { useNetworkVariable } from "./networkConfig";
 import ClipLoader from "react-spinners/ClipLoader";
 import { mintNFT } from "./mint";
+import { SuiObjectData } from "@mysten/sui/client";
 
 const STORAGE_KEY = "saved_image_urls_v1";
 
@@ -248,54 +249,239 @@ export function MintNftComponent() {
   );
 }
 
+// function WalletStatus() {
+//   const account = useCurrentAccount();
+//   const { data, isPending, error } = useSuiClientQuery(
+//     "getOwnedObjects",
+//     {
+//       owner: account?.address as string,
+//     },
+//     {
+//       enabled: !!account,
+//     },
+//   );
+
+//   if (!account) {
+//     return null;
+//   }
+
+//   if (error) {
+//     return <Flex>Error: {error.message}</Flex>;
+//   }
+
+//   if (isPending || !data) {
+//     return <Flex>Loading...</Flex>;
+//   }
+
+//   console.log(data);
+
+//   return (
+//     <Container my="2" style={{ paddingLeft: "2vw" }}>
+//       <Heading mb="2">Wallet Status</Heading>
+
+//       {account ? (
+//         <Flex direction="column">
+//           <Text>Wallet connected</Text>
+//           <Text>Address: {account.address}</Text>
+//         </Flex>
+//       ) : (
+//         <Text>Wallet not connected</Text>
+//       )}
+//       <Flex direction="column" my="2">
+//         {data.data.length === 0 ? (
+//           <Text>No objects owned by the connected wallet</Text>
+//         ) : (
+//           <Heading size="4">Objects owned by the connected wallet</Heading>
+//         )}
+//         {data.data.map((object) => (
+//           <Flex key={object.data?.objectId}>
+//             <Text>Object ID: {object.data?.objectId}</Text>
+//           </Flex>
+//         ))}
+//       </Flex>
+//     </Container>
+//   );
+// }
+
+// function WalletStatus() {
+//   const account = useCurrentAccount();
+//   const { data, isPending, error } = useSuiClientQuery(
+//     "getOwnedObjects",
+//     { owner: account?.address as string },
+//     { enabled: !!account },
+//   );
+
+//   console.log(data);
+
+//   if (!account) return null;
+//   if (error) return <Flex>Error: {error.message}</Flex>;
+//   if (isPending || !data) return <Flex>Loading...</Flex>;
+
+//   return (
+//     <Container my="2" style={{ paddingLeft: "2vw" }}>
+//       <Heading mb="2">Wallet Status</Heading>
+//       <Flex direction="column">
+//         <Text>Wallet connected</Text>
+//         <Text>Address: {account.address}</Text>
+//       </Flex>
+//       <Flex direction="column" my="2">
+//         {data.data.length === 0 ? (
+//           <Text>No objects owned by the connected wallet</Text>
+//         ) : (
+//           <>
+//             <Heading size="4">Objects owned by the connected wallet</Heading>
+//             {data.data.map((object) => (
+//               <Flex key={object.data?.objectId}>
+//                 <Text>Object ID: {JSON.stringify(object?.data)}</Text>
+//               </Flex>
+//             ))}
+//           </>
+//         )}
+//       </Flex>
+//     </Container>
+//   );
+// }
+
 function WalletStatus() {
   const account = useCurrentAccount();
   const { data, isPending, error } = useSuiClientQuery(
     "getOwnedObjects",
-    {
-      owner: account?.address as string,
-    },
-    {
-      enabled: !!account,
-    },
+    { owner: account?.address as string },
+    { enabled: !!account },
   );
 
-  if (!account) {
-    return null;
-  }
+  if (!account) return null;
+  if (error) return <Flex>Error: {error.message}</Flex>;
+  if (isPending || !data) return <Flex>Loading...</Flex>;
 
-  if (error) {
-    return <Flex>Error: {error.message}</Flex>;
-  }
-
-  if (isPending || !data) {
-    return <Flex>Loading...</Flex>;
-  }
+  const objectIds = data.data.map((obj) => obj.data?.objectId);
 
   return (
     <Container my="2" style={{ paddingLeft: "2vw" }}>
       <Heading mb="2">Wallet Status</Heading>
+      <Flex direction="column">
+        <Text>Wallet connected</Text>
+        <Text>Address: {account.address}</Text>
+      </Flex>
 
-      {account ? (
-        <Flex direction="column">
-          <Text>Wallet connected</Text>
-          <Text>Address: {account.address}</Text>
-        </Flex>
-      ) : (
-        <Text>Wallet not connected</Text>
-      )}
       <Flex direction="column" my="2">
-        {data.data.length === 0 ? (
+        {objectIds.length === 0 ? (
           <Text>No objects owned by the connected wallet</Text>
         ) : (
-          <Heading size="4">Objects owned by the connected wallet</Heading>
+          <>
+            <Heading size="4">NFTs owned by the connected wallet</Heading>
+            <NFTList objectIds={objectIds} />
+          </>
         )}
-        {data.data.map((object) => (
-          <Flex key={object.data?.objectId}>
-            <Text>Object ID: {object.data?.objectId}</Text>
-          </Flex>
-        ))}
       </Flex>
     </Container>
+  );
+}
+
+// function NFTList({ objectIds }) {
+//   const suiClient = useSuiClient();
+//   const [nfts, setNfts] = useState([]);
+//   const [loading, setLoading] = useState(false);
+
+//   useEffect(() => {
+//     async function fetchNFTs() {
+//       setLoading(true);
+//       const results = await Promise.all(
+//         objectIds.map((id) =>
+//           suiClient.getObject({
+//             id,
+//             options: {
+//               showContent: true,
+//               showType: true,
+//               showOwner: true,
+//               showDisplay: true,
+//             },
+//           }),
+//         ),
+//       );
+//       setNfts(results);
+//       setLoading(false);
+//     }
+//     if (objectIds.length) fetchNFTs();
+//   }, [objectIds, suiClient]);
+
+//   if (loading) return <div>Loading...</div>;
+
+//   return (
+//     <div>
+//       {nfts.map((nft) => (
+//         <div key={nft.data.objectId}>
+//           <div>Object ID: {nft.data.objectId}</div>
+//           <div>Type: {nft.data.type}</div>
+//           <div>Owner: {JSON.stringify(nft.data.owner)}</div>
+//           <div>Content: {JSON.stringify(nft.data.content)}</div>
+//         </div>
+//       ))}
+//     </div>
+//   );
+// }
+
+function NFTList({ objectIds }) {
+  const suiClient = useSuiClient();
+  const [nfts, setNfts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    async function fetchNFTs() {
+      setLoading(true);
+      try {
+        const results = await suiClient.multiGetObjects({
+          ids: objectIds,
+          options: {
+            showContent: true,
+            showType: true,
+            showOwner: true,
+            showDisplay: true,
+          },
+        });
+        setNfts(results);
+      } finally {
+        setLoading(false);
+      }
+    }
+    if (objectIds.length) fetchNFTs();
+  }, [objectIds, suiClient]);
+
+  if (loading) return <div>Loading NFTs...</div>;
+
+  console.log(nfts);
+
+  return (
+    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+      {nfts
+        .filter((el) => el.data.content.fields.url)
+        .map((nft) =>
+          nft.data ? (
+            <div
+              key={nft.data.objectId}
+              className="border rounded-lg p-3 shadow-sm"
+              style={{
+                border: "1px solid #8f548fff",
+                margin: "10px 20px",
+                width: "201px",
+              }}
+            >
+              <p>{nft.data.content.fields.name}</p>
+              {nft.data.content.fields.url && (
+                <img
+                  src={nft.data.content.fields.url}
+                  alt="NFT"
+                  width={200}
+                  className="w-32 h-32 object-cover mt-2"
+                />
+              )}
+            </div>
+          ) : (
+            <div key={Math.random()} className="border rounded p-3">
+              <p>⚠️ Object not found or deleted</p>
+            </div>
+          ),
+        )}
+    </div>
   );
 }
