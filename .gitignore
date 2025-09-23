@@ -2,3 +2,5 @@ build/*
 .trace
 .coverage*
 */node_modules/*
+**dist*/*
+*src/dist*

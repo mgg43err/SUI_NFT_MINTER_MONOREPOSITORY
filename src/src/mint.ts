@@ -1,14 +1,12 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { SuiClient } from "@mysten/sui/client";
-import { UseSignAndExecuteTransactionResult } from "@mysten/dapp-kit";
+import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
 import { WalletAccount } from "@wallet-standard/base";
 
 export async function mintNFT(
   name: string,
   url: string,
   nftPackageId: string,
-  signAndExecute: UseSignAndExecuteTransactionResult["mutateAsync"],
-  suiClient: SuiClient,
+  signAndExecute: ReturnType<typeof useSignAndExecuteTransaction>["mutateAsync"],
   walletAccount: WalletAccount,
 ) {
   const tx = new Transaction();
@@ -23,9 +21,7 @@ export async function mintNFT(
 
   const result = await signAndExecute({
     transaction: tx,
-    options: {
-      showEffects: true,
-    },
+    showEffects: true,
   });
 
   return result;

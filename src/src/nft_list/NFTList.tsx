@@ -30,7 +30,14 @@ export function NFTList({ objectIds }) {
   if (loading) return <div>Loading NFTs...</div>;
 
   return (
-    <div className="grid grid-cols-2 md:grid-cols-3 gap-4 mt-4">
+    <div
+      style={{
+        display: "flex",
+        marginTop: "20px",
+        flexWrap: "wrap", // 👈 makes items move to next row
+        gap: "20px",
+      }}
+    >
       {nfts
         .filter((el) => el.data.content.fields.url)
         .map((nft) =>
@@ -42,9 +49,13 @@ export function NFTList({ objectIds }) {
                 border: "1px solid #8f548fff",
                 margin: "10px 20px",
                 width: "201px",
+                alignItems: "center",
+                textAlign: "center",
+                display: "flex",
+                flexDirection: "column",
+                justifyContent: "space-between",
               }}
             >
-              <p>{nft.data.content.fields.name}</p>
               {nft.data.content.fields.url && (
                 <img
                   src={nft.data.content.fields.url}
@@ -53,6 +64,7 @@ export function NFTList({ objectIds }) {
                   className="w-32 h-32 object-cover mt-2"
                 />
               )}
+              <p>{nft.data.content.fields.name}</p>
             </div>
           ) : (
             <div key={Math.random()} className="border rounded p-3">

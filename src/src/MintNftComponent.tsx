@@ -23,6 +23,7 @@ export function MintNftComponent() {
   const [nameNFT, setNameNFT] = useState("");
   const [savedUrls, setSavedUrls] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<{
     type: "info" | "error";
     text: string;
@@ -55,6 +56,29 @@ export function MintNftComponent() {
     if (message) setMessage(null);
   };
 
+  const handlePreview = async () => {
+    setMessage(null);
+    const url = imageUrl.trim();
+    if (!url) {
+      setMessage({ type: "error", text: "Please paste an image URL." });
+      return;
+    }
+
+    setLoading(true);
+    const ok = await validateImage(url);
+    setLoading(false);
+
+    if (!ok) {
+      setMessage({
+        type: "error",
+        text: "Could not load image from that URL (CORS or invalid URL).",
+      });
+      return;
+    }
+
+    setPreviewUrl(url);
+  };
+
   const validateImage = (url: string) =>
     new Promise<boolean>((resolve) => {
       const img = new Image();
@@ -64,6 +88,7 @@ export function MintNftComponent() {
     });
 
   const handleSave = async () => {
+    console.log(imageUrl);
     setMessage(null);
     const url = imageUrl.trim();
     if (!url) {
@@ -89,11 +114,12 @@ export function MintNftComponent() {
     }
 
     setSavedUrls((prev) => [url, ...prev]);
-    setImageUrl("");
   };
 
   const handleDelete = (url: string) => {
     setSavedUrls((prev) => prev.filter((u) => u !== url));
+    setImageUrl("");
+    setPreviewUrl(null);
   };
 
   const handleMintClick = async (url: string, nameNFT: string) => {
@@ -149,7 +175,7 @@ export function MintNftComponent() {
         />
 
         <label htmlFor="url" className="block mb-2">
-          Upload Your NFT Image
+          Enter NFT image link
         </label>
 
         <input
@@ -169,13 +195,13 @@ export function MintNftComponent() {
             width: "258px",
           }}
         >
-          <Button onClick={handleSave} disabled={loading}>
-            {loading ? "Saving..." : "Save"}
+          <Button onClick={handlePreview} disabled={loading}>
+            {loading ? "Loading..." : "Preview"}
           </Button>
 
           <Button
             className="flex gap-2 ml-2"
-            onClick={() => handleMintClick(imageUrl, nameNFT)}
+            onClick={() => handleMintClick(previewUrl ?? imageUrl, nameNFT)}
             disabled={loading || !currentAccount}
           >
             {loading ? <ClipLoader size={20} /> : "Mint your Image as NFT"}
@@ -194,49 +220,46 @@ export function MintNftComponent() {
           </div>
         )}
 
-        {savedUrls.length > 0 && (
+        {previewUrl && (
           <div className="saved-urls">
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-              {savedUrls.map((url) => (
-                <div
-                  key={url}
-                  className="border rounded-lg overflow-hidden shadow-sm p-2 flex flex-col items-center"
-                >
-                  <a href={url} target="_blank" rel="noopener noreferrer">
-                    <img
-                      src={url}
-                      alt="Saved preview"
-                      className="w-32 h-32 object-cover rounded-md hover:opacity-80 transition"
-                      onError={(e) => {
-                        (e.currentTarget as HTMLImageElement).src =
-                          "data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'320\' height=\'320\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%23eee\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-size=\'18\'%3EImage not available%3C/text%3E%3C/svg%3E";
-                      }}
-                    />
-                  </a>
+              <div
+                key={previewUrl}
+                className="border rounded-lg overflow-hidden shadow-sm p-2 flex flex-col items-center"
+              >
+                <a href={previewUrl} target="_blank" rel="noopener noreferrer">
+                  <img
+                    src={previewUrl}
+                    alt="Saved preview"
+                    className="w-32 h-32 object-cover rounded-md hover:opacity-80 transition"
+                    onError={(e) => {
+                      (e.currentTarget as HTMLImageElement).src =
+                        "data:image/svg+xml;charset=utf-8,%3Csvg xmlns=\'http://www.w3.org/2000/svg\' width=\'320\' height=\'320\'%3E%3Crect width=\'100%25\' height=\'100%25\' fill=\'%23eee\'/%3E%3Ctext x=\'50%25\' y=\'50%25\' dominant-baseline=\'middle\' text-anchor=\'middle\' fill=\'%23999\' font-size=\'18\'%3EImage not available%3C/text%3E%3C/svg%3E";
+                    }}
+                  />
+                </a>
 
-                  <div className="flex gap-2 mt-2">
-                    <Button
-                      size="1"
-                      variant="soft"
-                      onClick={() => window.open(url, "_blank")}
-                    >
-                      Open
-                    </Button>
-                    <Button
-                      size="1"
-                      variant="soft"
-                      onClick={() => handleDelete(url)}
-                    >
-                      Delete
-                    </Button>
-                  </div>
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    size="1"
+                    variant="soft"
+                    onClick={() => window.open(previewUrl, "_blank")}
+                  >
+                    Open
+                  </Button>
+                  <Button
+                    size="1"
+                    variant="soft"
+                    onClick={() => handleDelete(previewUrl)}
+                  >
+                    Delete
+                  </Button>
                 </div>
-              ))}
+              </div>
             </div>
           </div>
         )}
       </div>
-      <WalletStatus />
     </Flex>
   );
 }
