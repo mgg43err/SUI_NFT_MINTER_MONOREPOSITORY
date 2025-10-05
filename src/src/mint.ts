@@ -1,28 +1,41 @@
 import { Transaction } from "@mysten/sui/transactions";
-import { useSignAndExecuteTransaction } from "@mysten/dapp-kit";
-import { WalletAccount } from "@wallet-standard/base";
+import { toB64 } from "@mysten/sui/utils";
+import { getFullnodeUrl, SuiClient } from "@mysten/sui/client";
+import { enokiClient } from "./enoki/enoki";
+import { networkConfig } from "./networkConfig";
 
 export async function mintNFT(
   name: string,
   url: string,
   nftPackageId: string,
-  signAndExecute: ReturnType<typeof useSignAndExecuteTransaction>["mutateAsync"],
-  walletAccount: WalletAccount,
+  sender: string,
+  network: keyof typeof networkConfig,
 ) {
+  const suiClient = new SuiClient({ url: getFullnodeUrl(network) });
+
   const tx = new Transaction();
 
+  const contract = `${nftPackageId}::first_smart_contract::mint`;
 
   tx.moveCall({
-    target: `${nftPackageId}::first_smart_contract::mint`,
+    target: contract,
     arguments: [tx.pure.string(name), tx.pure.string(url)],
   });
 
-  tx.setSender(walletAccount.address);
+  tx.setSender(sender);
 
-  const result = await signAndExecute({
-    transaction: tx,
-    showEffects: true,
+  const txBytes = await tx.build({
+    client: suiClient,
+    onlyTransactionKind: true,
   });
 
-  return result;
+  const sponsoredTransaction = await enokiClient.createSponsoredTransaction({
+    network,
+    transactionKindBytes: toB64(txBytes),
+    sender,
+    allowedMoveCallTargets: [contract],
+    allowedAddresses: [sender],
+  });
+
+  return sponsoredTransaction;
 }

@@ -3,13 +3,14 @@ import "./style.css";
 import { Button, Flex } from "@radix-ui/themes";
 import {
   useCurrentAccount,
-  useSignAndExecuteTransaction,
+  useSignTransaction,
   useSuiClient,
+  useSuiClientContext,
 } from "@mysten/dapp-kit";
 import { useNetworkVariable } from "./networkConfig";
 import ClipLoader from "react-spinners/ClipLoader";
 import { mintNFT } from "./mint";
-import WalletStatus from "./wallet_status/WaletStatus";
+import { enokiClient } from "./enoki/enoki";
 
 const STORAGE_KEY = "saved_image_urls_v1";
 
@@ -17,7 +18,9 @@ export function MintNftComponent() {
   const currentAccount = useCurrentAccount();
   const suiClient = useSuiClient();
   const nftPackageId = useNetworkVariable("nftPackageId");
-  const { mutateAsync: signAndExecute } = useSignAndExecuteTransaction();
+  const { network } = useSuiClientContext();
+
+  const { mutateAsync: signTransaction } = useSignTransaction();
 
   const [imageUrl, setImageUrl] = useState("");
   const [nameNFT, setNameNFT] = useState("");
@@ -140,14 +143,27 @@ export function MintNftComponent() {
     }
     try {
       setLoading(true);
-      const result = await mintNFT(
+      const sponsoredTransaction = await mintNFT(
         nameNFT,
         url,
         nftPackageId as string,
-        signAndExecute,
-        suiClient,
-        currentAccount,
+        currentAccount.address,
+        network,
       );
+
+      const { signature } = await signTransaction({
+        transaction: sponsoredTransaction.bytes,
+      });
+
+      if (!signature) {
+        throw new Error("Error signing transaction block");
+      }
+
+      const result = await enokiClient.executeSponsoredTransaction({
+        digest: sponsoredTransaction.digest,
+        signature,
+      });
+
       setMessage({ type: "info", text: "NFT minted! Tx: " + result.digest });
     } catch (e) {
       setMessage({

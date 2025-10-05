@@ -4,7 +4,7 @@ Hello! 👋
 
 This project is my implementation of an NFT minter on the Sui blockchain.
 
-👉 [Live Demo](https://papaya-dragon-ba1ea8.netlify.app/)
+👉 [Live Demo](https://cheery-taffy-bea860.netlify.app/)
 
 ---
 
